@@ -7,6 +7,8 @@ namespace SocketsSample.Hubs
     public class Hub
     {
         public IHubConnectionContext Clients { get; set; }
+        public string ConnectionId { get; set; }
+        public IDictionary<string, object> ConnectionMetadata { get; set; }
     }
 
     public interface IHubConnectionContext

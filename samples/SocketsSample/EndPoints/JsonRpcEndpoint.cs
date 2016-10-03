@@ -16,7 +16,7 @@ namespace SocketsSample
     // This end point implementation is used for framing JSON objects from the stream
     public class JsonRpcEndpoint : EndPoint
     {
-        private readonly Dictionary<string, Func<JObject, JObject>> _callbacks = new Dictionary<string, Func<JObject, JObject>>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, Func<Connection, JObject, JObject>> _callbacks = new Dictionary<string, Func<Connection, JObject, JObject>>(StringComparer.OrdinalIgnoreCase);
         private readonly ILogger<JsonRpcEndpoint> _logger;
         private readonly IServiceProvider _serviceProvider;
 
@@ -73,10 +73,10 @@ namespace SocketsSample
 
                 JObject response = null;
 
-                Func<JObject, JObject> callback;
+                Func<Connection, JObject, JObject> callback;
                 if (_callbacks.TryGetValue(request.Value<string>("method"), out callback))
                 {
-                    response = callback(request);
+                    response = callback(connection, request);
                 }
                 else
                 {
@@ -102,7 +102,7 @@ namespace SocketsSample
             return false;
         }
 
-        protected virtual void Initialize(object endpoint)
+        protected virtual void Initialize(Connection connection, object endpoint)
         {
 
         }
@@ -129,7 +129,7 @@ namespace SocketsSample
                     _logger.LogDebug("RPC method '{methodName}' is bound", methodName);
                 }
 
-                _callbacks[methodName] = request =>
+                _callbacks[methodName] = (connection, request) =>
                 {
                     var response = new JObject();
                     response["id"] = request["id"];
@@ -141,7 +141,7 @@ namespace SocketsSample
                     {
                         object value = scope.ServiceProvider.GetService(type) ?? Activator.CreateInstance(type);
 
-                        Initialize(value);
+                        Initialize(connection, value);
 
                         try
                         {

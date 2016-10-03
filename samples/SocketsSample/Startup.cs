@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using SocketsSample.Hubs;
 
 namespace SocketsSample
 {
@@ -17,6 +18,13 @@ namespace SocketsSample
             services.AddSingleton<HubEndpoint>();
             services.AddSingleton<JsonRpcEndpoint>();
             services.AddSingleton<ChatEndPoint>();
+
+            services.AddSingleton<IRpcMethodProvider>(sp =>
+            {
+                var provider = new ReflectedRpcMethodProvider(sp.GetRequiredService<ILogger<ReflectedRpcMethodProvider>>());
+                provider.Add(typeof(Chat));
+                return provider;
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
