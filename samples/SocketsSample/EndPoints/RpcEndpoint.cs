@@ -46,31 +46,14 @@ namespace SocketsSample
 
             while (true)
             {
-                // JSON.NET doesn't handle async reads so we wait for data here
-                var result = await connection.Channel.Input.ReadAsync();
+                var invocationDescriptor = await formatter.ReadAsync(connection.Channel.GetStream());
 
-                // Don't advance the buffer so we parse sync
-                connection.Channel.Input.Advance(result.Buffer.Start);
-
-                while (!reader.Read())
+                /* TODO: ??
+                if (connection.Channel.Input.Reading.IsCompleted)
                 {
                     break;
                 }
-
-                JObject request;
-                try
-                {
-                    request = JObject.Load(reader);
-                }
-                catch (Exception)
-                {
-                    if (result.IsCompleted)
-                    {
-                        break;
-                    }
-
-                    throw;
-                }
+                */
 
                 if (_logger.IsEnabled(LogLevel.Debug))
                 {
